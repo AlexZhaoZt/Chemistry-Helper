@@ -11,6 +11,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -55,13 +56,15 @@ public final class MainActivity extends AppCompatActivity {
         try {
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                     Request.Method.GET,
-                    "http://samples.openweathermap.org/data/2.5/weather?zip=61820,us&appid="
+                    "http://api.openweathermap.org/data/2.5/weather?zip=61820,us&appid="
                             + BuildConfig.API_KEY,
                     null,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(final JSONObject response) {
-                            Log.d(TAG, response.toString());
+                            try {
+                                Log.d(TAG, response.toString(2));
+                            } catch (JSONException ignored) { }
                         }
                     }, new Response.ErrorListener() {
                         @Override
