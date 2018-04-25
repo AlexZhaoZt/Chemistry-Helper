@@ -37,7 +37,7 @@ public class searchResult extends AppCompatActivity {
         try {
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                     Request.Method.GET,
-                    "http://api.openweathermap.org/data/2.5/weather?zip=61820,us&appid="
+                    ""
                             + BuildConfig.API_KEY,
                     null,
                     new Response.Listener<JSONObject>() {
