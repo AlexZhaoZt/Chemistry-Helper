@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 
 
@@ -39,6 +40,7 @@ public final class MainActivity extends AppCompatActivity {
             }
         });
 
+        Switch swit = (Switch) findViewById(R.id.switch1);
         Button molarMass = (Button) findViewById(R.id.molarMass);
         molarMass.setOnClickListener(new View.OnClickListener() {
             @Override

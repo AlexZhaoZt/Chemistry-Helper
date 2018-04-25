@@ -17,6 +17,7 @@ public class searchResult extends AppCompatActivity {
 
     private static RequestQueue requestQueue;
     private static final String TAG = "Search Result";
+    public String api = "jgXxAMt3w8GXg3aZaAkFJHTN5xBYaVLD";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,9 +37,9 @@ public class searchResult extends AppCompatActivity {
     void startAPICall(String chemical) {
         try {
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
-                    Request.Method.GET,
+                    Request.Method.POST,
                     ""
-                            + BuildConfig.API_KEY,
+                            + api,
                     null,
                     new Response.Listener<JSONObject>() {
                         @Override
