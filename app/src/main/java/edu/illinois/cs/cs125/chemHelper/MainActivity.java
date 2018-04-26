@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -13,8 +14,10 @@ import android.widget.TextView;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public final class MainActivity extends AppCompatActivity {
 
+    public boolean checked = false;
 
     /**
      * Run when this activity comes to the foreground.
@@ -31,16 +34,27 @@ public final class MainActivity extends AppCompatActivity {
         final EditText textbar = (EditText) findViewById(R.id.textbar);
 
         Button search = (Button) findViewById(R.id.search);
+        final Switch switch1 = (Switch) findViewById(R.id.switch1);
+        switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (switch1.isChecked()) {
+                    checked = true;
+                } else {
+                    checked = false;
+                }
+            }
+        });
         search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intentSearch = new Intent(getApplicationContext(), searchResult.class);
                 intentSearch.putExtra("searchContent", textbar.getText());
+                intentSearch.putExtra("option", checked);
                 startActivity(intentSearch);
             }
         });
 
-        Switch swit = (Switch) findViewById(R.id.switch1);
         Button molarMass = (Button) findViewById(R.id.molarMass);
         molarMass.setOnClickListener(new View.OnClickListener() {
             @Override
