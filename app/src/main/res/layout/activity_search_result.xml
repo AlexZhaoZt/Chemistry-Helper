@@ -6,11 +6,51 @@
     android:layout_height="match_parent"
     tools:context=".searchResult">
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="319dp"
-        android:layout_height="31dp"
-        android:text="TextView"
-        tools:layout_editor_absoluteX="32dp"
-        tools:layout_editor_absoluteY="35dp" />
+    <LinearLayout
+        android:layout_width="344dp"
+        android:layout_height="498dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="30sp"
+            android:textColor="#4f3eea"/>
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_launcher_foreground" />
+
+        <TextView
+            android:id="@+id/formula"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Loading..."
+            android:textColor="#1e1e1e"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/molarMass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#1e1e1e"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/smile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="5sp"
+            android:textColor="#1e1e1e"
+            android:textSize="18sp" />
+
+    </LinearLayout>
 </android.support.constraint.ConstraintLayout>

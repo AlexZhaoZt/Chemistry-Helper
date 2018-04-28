@@ -30,9 +30,7 @@ public final class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         final TextView shortResult = (TextView) findViewById(R.id.shortResult);
-
         final EditText textbar = (EditText) findViewById(R.id.textbar);
-
         Button search = (Button) findViewById(R.id.search);
         final Switch switch1 = (Switch) findViewById(R.id.switch1);
         switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -48,8 +46,8 @@ public final class MainActivity extends AppCompatActivity {
         search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intentSearch = new Intent(getApplicationContext(), searchResult.class);
-                intentSearch.putExtra("searchContent", textbar.getText());
+                Intent intentSearch = new Intent(MainActivity.this, searchResult.class);
+                intentSearch.putExtra("content", textbar.getText().toString());
                 intentSearch.putExtra("option", checked);
                 startActivity(intentSearch);
             }
