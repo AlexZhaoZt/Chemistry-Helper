@@ -1,6 +1,7 @@
 package edu.illinois.cs.cs125.chemHelper;
 
 import android.content.Intent;
+import android.graphics.LightingColorFilter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -112,7 +113,28 @@ public final class MainActivity extends AppCompatActivity {
                     }
                     j = i + 1;
                     parentMass = getMolarMass(newFormula);
-                } else {
+                } else if (chemical.charAt(i) == '·') {
+                    String newFormula = "";
+                    String amountStr = "";
+                    int number = 1;
+                    i++;
+                    for (int k = i; k < chemical.length(); k++) {
+                        if (chemical.charAt(k) >= '0' && chemical.charAt(k) <= '9') {
+                            amountStr += chemical.charAt(k);
+                            i++;
+                        } else {
+                            break;
+                        }
+                    }
+                    number = Integer.parseInt(amountStr);
+                    while (i < chemical.length()) {
+                        newFormula += chemical.charAt(i);
+                        i++;
+                    }
+                    j = i + 1;
+                    mass += getMolarMass(newFormula) * number;
+                }
+                else {
                     return -1.0;
                 }
             } else {
