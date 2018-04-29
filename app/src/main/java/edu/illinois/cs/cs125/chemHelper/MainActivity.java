@@ -3,12 +3,16 @@ package edu.illinois.cs.cs125.chemHelper;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.support.v7.widget.Toolbar;
 
 
 import java.util.HashMap;
@@ -27,7 +31,6 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
         final TextView shortResult = (TextView) findViewById(R.id.shortResult);
         final EditText textbar = (EditText) findViewById(R.id.textbar);
@@ -134,6 +137,30 @@ public final class MainActivity extends AppCompatActivity {
             }
         }
         return mass;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.settings:
+                Intent intent1 = new Intent(this, about.class);
+                this.startActivity(intent1);
+                return true;
+            case R.id.about:
+                Intent intent2 = new Intent(this, about.class);
+                this.startActivity(intent2);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
     }
 
 
