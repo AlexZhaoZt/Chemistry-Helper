@@ -3,13 +3,16 @@ package edu.illinois.cs.cs125.chemHelper;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -21,6 +24,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
@@ -51,14 +55,14 @@ public class searchResult extends AppCompatActivity {
         requestQueue = Volley.newRequestQueue(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_result);
-        String chemical = null;
 
         final TextView name = (TextView) findViewById(R.id.name);
         final TextView smile = (TextView) findViewById(R.id.smile);
         final TextView molarMass = (TextView) findViewById(R.id.molarMass);
         final TextView formula = (TextView) findViewById(R.id.formula);
         final ImageView imageView = (ImageView) findViewById(R.id.imageView);
-        chemical = intent.getStringExtra("content");
+        final TextView wikipedia = (TextView) findViewById(R.id.wikipedia);
+        final String chemical = intent.getStringExtra("content");
         Log.i(TAG, chemical);
         boolean checked = getIntent().getExtras().getBoolean("option");
 
@@ -90,6 +94,11 @@ public class searchResult extends AppCompatActivity {
                                             try {
                                                 setRecordID(response1.getJSONArray("results").getString(0));
                                                 Log.i(TAG, "Record ID: " + recordID);
+                                                if (recordID.equals("") || recordID.equals(null)) {
+                                                    name.setText("Error");
+                                                    molarMass.setText("Sorry, we can not find this compound:\n" + chemical);
+
+                                                }
                                                 final JsonObjectRequest detailsRequest = new JsonObjectRequest(
                                                         "https://api.rsc.org/compounds/v1/records/" + recordID + "/details?fields=SMILES,Formula,CommonName,MolecularWeight",
                                                         null,
@@ -158,6 +167,48 @@ public class searchResult extends AppCompatActivity {
                                                         return params;
                                                     }
                                                 };
+                                                JsonObjectRequest wikiRequest = new JsonObjectRequest(
+                                                        "https://api.rsc.org/compounds/v1/records/" + recordID + "/externalreferences?dataSources=Wikipedia",
+                                                        null,
+                                                        new Response.Listener<JSONObject>() {
+                                                            @Override
+                                                            public void onResponse(JSONObject response) {
+                                                                try {
+                                                                    JSONArray wiki = response.getJSONArray("externalReferences");
+                                                                    JSONObject wikiLink = wiki.getJSONObject(0);
+                                                                    String link = wikiLink.getString("externalUrl");
+
+                                                                    wikipedia.setText(Html.fromHtml("Wikipedia page available:<br><font color=#0066ff>" + link + "</font><br>Click to access the page."));
+
+                                                                    final Uri uriUrl = Uri.parse(link);
+                                                                    wikipedia.setOnClickListener(new View.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(View v) {
+
+                                                                            Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
+                                                                            startActivity(launchBrowser);
+                                                                        }
+                                                                    });
+                                                                } catch (JSONException ignored) {
+                                                                }
+                                                            }
+                                                        },
+                                                        new Response.ErrorListener() {
+                                                            @Override
+                                                            public void onErrorResponse(VolleyError error) {
+
+                                                            }
+                                                        }
+
+                                                ) {
+                                                    @Override
+                                                    public Map<String, String> getHeaders() throws AuthFailureError {
+                                                        Map<String, String> params = new HashMap<>();
+                                                        params.put("apikey", api);
+                                                        return params;
+                                                    }
+                                                };
+                                                requestQueue.add(wikiRequest);
                                                 requestQueue.add(imageRequest);
                                                 requestQueue.add(detailsRequest);
                                             } catch (JSONException e) {
@@ -191,7 +242,8 @@ public class searchResult extends AppCompatActivity {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG, error.toString());
+                        name.setText("Error");
+                        molarMass.setText("Sorry, we can not find this compound:\n" + chemical);
                     }
                 }
         ) {
@@ -231,6 +283,11 @@ public class searchResult extends AppCompatActivity {
                                             try {
                                                 setRecordID(response1.getJSONArray("results").getString(0));
                                                 Log.i(TAG, "Record ID: " + recordID);
+                                                if (recordID.equals("") || recordID.equals(null)) {
+                                                    name.setText("Error");
+                                                    molarMass.setText("Sorry, we can not find this compound:\n" + chemical);
+
+                                                }
                                                 final JsonObjectRequest detailsRequest = new JsonObjectRequest(
                                                         "https://api.rsc.org/compounds/v1/records/" + recordID + "/details?fields=SMILES,Formula,CommonName,MolecularWeight",
                                                         null,
@@ -299,8 +356,51 @@ public class searchResult extends AppCompatActivity {
                                                         return params;
                                                     }
                                                 };
+                                                JsonObjectRequest wikiRequest = new JsonObjectRequest(
+                                                        "https://api.rsc.org/compounds/v1/records/" + recordID + "/externalreferences?dataSources=wikipedia",
+                                                        null,
+                                                        new Response.Listener<JSONObject>() {
+                                                            @Override
+                                                            public void onResponse(JSONObject response) {
+                                                                try {
+                                                                    JSONArray wiki = response.getJSONArray("externalReferences");
+                                                                    JSONObject wikiLink = wiki.getJSONObject(0);
+                                                                    String link = wikiLink.getString("externalUrl");
+
+                                                                    wikipedia.setText(Html.fromHtml("Wikipedia page available:<br><font color=#0066ff>" + link + "</font><br>Click to access the page."));
+
+                                                                    final Uri uriUrl = Uri.parse(link);
+                                                                    wikipedia.setOnClickListener(new View.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(View v) {
+
+                                                                            Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
+                                                                            startActivity(launchBrowser);
+                                                                        }
+                                                                    });
+                                                                } catch (JSONException ignored) {
+                                                                    Log.e(TAG, "NO SUCH JSON!!");
+                                                                }
+                                                            }
+                                                        },
+                                                        new Response.ErrorListener() {
+                                                            @Override
+                                                            public void onErrorResponse(VolleyError error) {
+                                                                Log.e(TAG, "WIKI request send error.");
+                                                            }
+                                                        }
+
+                                                ) {
+                                                    @Override
+                                                    public Map<String, String> getHeaders() throws AuthFailureError {
+                                                        Map<String, String> params = new HashMap<>();
+                                                        params.put("apikey", api);
+                                                        return params;
+                                                    }
+                                                };
                                                 requestQueue.add(imageRequest);
                                                 requestQueue.add(detailsRequest);
+                                                requestQueue.add(wikiRequest);
                                             } catch (JSONException e) {
                                                 Log.e(TAG, "Error on APICallQueryIDGetRecordID.OnResponse.");
                                             }

@@ -14,6 +14,7 @@ public class about extends AppCompatActivity {
     private TextView title;
     private TextView text;
     private Button youTube;
+    private TextView github;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,6 +22,16 @@ public class about extends AppCompatActivity {
         title = (TextView) findViewById(R.id.title);
         text = (TextView) findViewById(R.id.text);
         youTube = (Button) findViewById(R.id.youTube);
+        github = (TextView) findViewById(R.id.github);
+        github.setOnClickListener(new View.OnClickListener() {
+            final Uri uriUrl = Uri.parse("https://github.com/AlexZhaoZt/Chemistry-Helper");
+                @Override
+                public void onClick(View v) {
+
+                    Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
+                    startActivity(launchBrowser);
+                }
+        });
         text.setText(Html.fromHtml("Created by Zhenting Zhao and Penghao Wang.<br>The search functionality uses the " +
                 "API from ChemSpider Compound Search API. The molar mass calculator" +
                 "functionality runs locally. <br> This application is still in its early " +
