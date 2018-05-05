@@ -40,14 +40,13 @@ public class searchResult extends AppCompatActivity {
     public String api = "jgXxAMt3w8GXg3aZaAkFJHTN5xBYaVLD";
     public String recordID;
     public String queryID = null;
+    public TextView name;
+    public TextView smile;
+    public TextView molarMass;
+    public TextView formula;
+    public ImageView imageView;
+    public TextView wikipedia;
 
-    public void setRecordID(String rid) {
-        recordID = rid;
-    }
-
-    public void setQueryID(String qid) {
-        queryID = qid;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,399 +55,24 @@ public class searchResult extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_result);
 
-        final TextView name = (TextView) findViewById(R.id.name);
-        final TextView smile = (TextView) findViewById(R.id.smile);
-        final TextView molarMass = (TextView) findViewById(R.id.molarMass);
-        final TextView formula = (TextView) findViewById(R.id.formula);
-        final ImageView imageView = (ImageView) findViewById(R.id.imageView);
-        final TextView wikipedia = (TextView) findViewById(R.id.wikipedia);
+        name = findViewById(R.id.name);
+        smile = findViewById(R.id.smile);
+        molarMass = findViewById(R.id.molarMass);
+        formula = findViewById(R.id.formula);
+        imageView = findViewById(R.id.imageView);
+        wikipedia = findViewById(R.id.wikipedia);
         final String chemical = intent.getStringExtra("content");
         Log.i(TAG, chemical);
         boolean checked = getIntent().getExtras().getBoolean("option");
-
-        JSONObject jsonReq = new JSONObject();
-        try {
-            jsonReq.put("name", chemical);
-            jsonReq.put("orderDirection", "");
-        } catch (JSONException ignored) {
-            Log.e(TAG, "you screwed up the json package");
-        }
-        JsonObjectRequest request = new JsonObjectRequest(
-                Request.Method.POST,
-                "https://api.rsc.org/compounds/v1/filter/name",
-                jsonReq,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(final JSONObject response) {
-                        try {
-                            setQueryID(response.getString("queryId"));
-                            Log.i(TAG, "Query ID: " + queryID);
-                            Log.i(TAG, "success on query");
-                            final JsonObjectRequest recordIDRequest = new JsonObjectRequest(
-                                    "https://api.rsc.org/compounds/v1/filter/"
-                                            + queryID + "/results?start=0&count=1",
-                                    null,
-                                    new Response.Listener<JSONObject>() {
-                                        @Override
-                                        public void onResponse(JSONObject response1) {
-                                            try {
-                                                setRecordID(response1.getJSONArray("results").getString(0));
-                                                Log.i(TAG, "Record ID: " + recordID);
-                                                if (recordID.equals("") || recordID.equals(null)) {
-                                                    name.setText("Error");
-                                                    molarMass.setText("Sorry, we can not find this compound:\n" + chemical);
-
-                                                }
-                                                final JsonObjectRequest detailsRequest = new JsonObjectRequest(
-                                                        "https://api.rsc.org/compounds/v1/records/" + recordID + "/details?fields=SMILES,Formula,CommonName,MolecularWeight",
-                                                        null,
-                                                        new Response.Listener<JSONObject>() {
-                                                            @Override
-                                                            public void onResponse(JSONObject response2) {
-                                                                try {
-                                                                    Log.i(TAG, "Details: " + response2.getString("commonName"));
-                                                                    name.setText(response2.getString("commonName"));
-                                                                    smile.setText("SMILES: " + response2.getString("smiles"));
-                                                                    String rawFormula = response2.getString("formula");
-                                                                    String regx = "_{}";
-                                                                    char[] ca = regx.toCharArray();
-                                                                    for (char c : ca) {
-                                                                        rawFormula = rawFormula.replace(""+c, "");
-                                                                    }
-                                                                    formula.setText("Formula: " + rawFormula);
-                                                                    molarMass.setText("Molar Mass: " + Double.toString(response2.getDouble("molecularWeight")));
-                                                                } catch (JSONException e) {
-                                                                    Log.e(TAG, "Error on detailsRequest.onResponse.");
-
-                                                                }
-                                                            }
-                                                        },
-                                                        new Response.ErrorListener() {
-                                                            @Override
-                                                            public void onErrorResponse(VolleyError error) {
-                                                                Log.e(TAG, "Error on detailsRequest.");
-                                                            }
-                                                        }
-                                                ) {
-                                                    @Override
-                                                    public Map<String, String> getHeaders() throws AuthFailureError {
-                                                        Map<String, String> params = new HashMap<>();
-                                                        params.put("apikey", api);
-                                                        return params;
-                                                    }
-                                                };
-                                                final JsonObjectRequest imageRequest = new JsonObjectRequest(
-                                                        "https://api.rsc.org/compounds/v1/records/" + recordID +"/image",
-                                                        null,
-                                                        new Response.Listener<JSONObject>() {
-                                                            @Override
-                                                            public void onResponse(JSONObject response3) {
-                                                                try {
-                                                                    Log.i(TAG, "Image (Base64 coded): " + response3.getString("image"));
-                                                                    byte[] decoded = Base64.decode(response3.getString("image"), Base64.DEFAULT);
-                                                                    Bitmap decodedByte = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
-                                                                    imageView.setImageBitmap(decodedByte);
-                                                                } catch (JSONException e) {
-                                                                    Log.e(TAG, "Error on imageRequest.onResponse.");
-                                                                }
-                                                            }
-                                                        },
-                                                        new Response.ErrorListener() {
-                                                            @Override
-                                                            public void onErrorResponse(VolleyError error) {
-                                                                Log.e(TAG, "Error on detailsRequest.");
-                                                            }
-                                                        }
-                                                ) {
-                                                    @Override
-                                                    public Map<String, String> getHeaders() throws AuthFailureError {
-                                                        Map<String, String> params = new HashMap<>();
-                                                        params.put("apikey", api);
-                                                        return params;
-                                                    }
-                                                };
-                                                JsonObjectRequest wikiRequest = new JsonObjectRequest(
-                                                        "https://api.rsc.org/compounds/v1/records/" + recordID + "/externalreferences?dataSources=Wikipedia",
-                                                        null,
-                                                        new Response.Listener<JSONObject>() {
-                                                            @Override
-                                                            public void onResponse(JSONObject response) {
-                                                                try {
-                                                                    JSONArray wiki = response.getJSONArray("externalReferences");
-                                                                    JSONObject wikiLink = wiki.getJSONObject(0);
-                                                                    String link = wikiLink.getString("externalUrl");
-
-                                                                    wikipedia.setText(Html.fromHtml("Wikipedia page available:<br><font color=#0066ff>" + link + "</font><br>Click to access the page."));
-
-                                                                    final Uri uriUrl = Uri.parse(link);
-                                                                    wikipedia.setOnClickListener(new View.OnClickListener() {
-                                                                        @Override
-                                                                        public void onClick(View v) {
-
-                                                                            Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
-                                                                            startActivity(launchBrowser);
-                                                                        }
-                                                                    });
-                                                                } catch (JSONException ignored) {
-                                                                }
-                                                            }
-                                                        },
-                                                        new Response.ErrorListener() {
-                                                            @Override
-                                                            public void onErrorResponse(VolleyError error) {
-
-                                                            }
-                                                        }
-
-                                                ) {
-                                                    @Override
-                                                    public Map<String, String> getHeaders() throws AuthFailureError {
-                                                        Map<String, String> params = new HashMap<>();
-                                                        params.put("apikey", api);
-                                                        return params;
-                                                    }
-                                                };
-                                                requestQueue.add(wikiRequest);
-                                                requestQueue.add(imageRequest);
-                                                requestQueue.add(detailsRequest);
-                                            } catch (JSONException e) {
-                                                Log.e(TAG, "Error on APICallQueryIDGetRecordID.OnResponse.");
-                                            }
-                                        }
-                                    },
-                                    new Response.ErrorListener() {
-                                        @Override
-                                        public void onErrorResponse(VolleyError error) {
-                                            Log.e(TAG, error.toString());
-                                            //implement
-                                        }
-                                    }
-                            ) {
-                                @Override
-                                public Map<String, String> getHeaders() throws AuthFailureError {
-                                    Map<String, String> params = new HashMap<>();
-                                    params.put("apikey", api);
-                                    return params;
-                                }
-                            };
-
-                            requestQueue.add(recordIDRequest);
-
-                        } catch (JSONException ignored) {
-                            Log.e(TAG, "you screwed up the onResponse:\n" + ignored.toString());
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        name.setText("Error");
-                        molarMass.setText("Sorry, we can not find this compound:\n" + chemical);
-                    }
-                }
-        ) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> params = new HashMap<>();
-                params.put("apikey", api);
-                return params;
-            }
-        };
-
-        JSONObject formulaJson = new JSONObject();
-        try {
-            formulaJson.put("formula", chemical);
-            formulaJson.put("orderDirection", "");
-        } catch (JSONException ignored) {
-            Log.e(TAG, "you screwed up the json package");
-        }
-        JsonObjectRequest formulaRequest = new JsonObjectRequest(
-                Request.Method.POST,
-                "https://api.rsc.org/compounds/v1/filter/formula",
-                formulaJson,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(final JSONObject response) {
-                        try {
-                            setQueryID(response.getString("queryId"));
-                            Log.i(TAG, "Query ID: " + queryID);
-                            Log.i(TAG, "success on query");
-                            final JsonObjectRequest recordIDRequest = new JsonObjectRequest(
-                                    "https://api.rsc.org/compounds/v1/filter/"
-                                            + queryID + "/results?start=0&count=1",
-                                    null,
-                                    new Response.Listener<JSONObject>() {
-                                        @Override
-                                        public void onResponse(JSONObject response1) {
-                                            try {
-                                                setRecordID(response1.getJSONArray("results").getString(0));
-                                                Log.i(TAG, "Record ID: " + recordID);
-                                                if (recordID.equals("") || recordID.equals(null)) {
-                                                    name.setText("Error");
-                                                    molarMass.setText("Sorry, we can not find this compound:\n" + chemical);
-
-                                                }
-                                                final JsonObjectRequest detailsRequest = new JsonObjectRequest(
-                                                        "https://api.rsc.org/compounds/v1/records/" + recordID + "/details?fields=SMILES,Formula,CommonName,MolecularWeight",
-                                                        null,
-                                                        new Response.Listener<JSONObject>() {
-                                                            @Override
-                                                            public void onResponse(JSONObject response2) {
-                                                                try {
-                                                                    Log.i(TAG, "Details: " + response2.getString("commonName"));
-                                                                    name.setText(response2.getString("commonName"));
-                                                                    smile.setText("SMILES: " + response2.getString("smiles"));
-                                                                    String rawFormula = response2.getString("formula");
-                                                                    String regx = "_{}";
-                                                                    char[] ca = regx.toCharArray();
-                                                                    for (char c : ca) {
-                                                                        rawFormula = rawFormula.replace(""+c, "");
-                                                                    }
-                                                                    formula.setText("Formula: " + rawFormula);
-                                                                    molarMass.setText("Molar Mass: " + Double.toString(response2.getDouble("molecularWeight")));
-                                                                } catch (JSONException e) {
-                                                                    Log.e(TAG, "Error on detailsRequest.onResponse.");
-
-                                                                }
-                                                            }
-                                                        },
-                                                        new Response.ErrorListener() {
-                                                            @Override
-                                                            public void onErrorResponse(VolleyError error) {
-                                                                Log.e(TAG, "Error on detailsRequest.");
-                                                            }
-                                                        }
-                                                ) {
-                                                    @Override
-                                                    public Map<String, String> getHeaders() throws AuthFailureError {
-                                                        Map<String, String> params = new HashMap<>();
-                                                        params.put("apikey", api);
-                                                        return params;
-                                                    }
-                                                };
-                                                final JsonObjectRequest imageRequest = new JsonObjectRequest(
-                                                        "https://api.rsc.org/compounds/v1/records/" + recordID +"/image",
-                                                        null,
-                                                        new Response.Listener<JSONObject>() {
-                                                            @Override
-                                                            public void onResponse(JSONObject response3) {
-                                                                try {
-                                                                    Log.i(TAG, "Image (Base64 coded): " + response3.getString("image"));
-                                                                    byte[] decoded = Base64.decode(response3.getString("image"), Base64.DEFAULT);
-                                                                    Bitmap decodedByte = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
-                                                                    imageView.setImageBitmap(decodedByte);
-                                                                } catch (JSONException e) {
-                                                                    Log.e(TAG, "Error on imageRequest.onResponse.");
-                                                                }
-                                                            }
-                                                        },
-                                                        new Response.ErrorListener() {
-                                                            @Override
-                                                            public void onErrorResponse(VolleyError error) {
-                                                                Log.e(TAG, "Error on detailsRequest.");
-                                                            }
-                                                        }
-                                                ) {
-                                                    @Override
-                                                    public Map<String, String> getHeaders() throws AuthFailureError {
-                                                        Map<String, String> params = new HashMap<>();
-                                                        params.put("apikey", api);
-                                                        return params;
-                                                    }
-                                                };
-                                                JsonObjectRequest wikiRequest = new JsonObjectRequest(
-                                                        "https://api.rsc.org/compounds/v1/records/" + recordID + "/externalreferences?dataSources=wikipedia",
-                                                        null,
-                                                        new Response.Listener<JSONObject>() {
-                                                            @Override
-                                                            public void onResponse(JSONObject response) {
-                                                                try {
-                                                                    JSONArray wiki = response.getJSONArray("externalReferences");
-                                                                    JSONObject wikiLink = wiki.getJSONObject(0);
-                                                                    String link = wikiLink.getString("externalUrl");
-
-                                                                    wikipedia.setText(Html.fromHtml("Wikipedia page available:<br><font color=#0066ff>" + link + "</font><br>Click to access the page."));
-
-                                                                    final Uri uriUrl = Uri.parse(link);
-                                                                    wikipedia.setOnClickListener(new View.OnClickListener() {
-                                                                        @Override
-                                                                        public void onClick(View v) {
-
-                                                                            Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
-                                                                            startActivity(launchBrowser);
-                                                                        }
-                                                                    });
-                                                                } catch (JSONException ignored) {
-                                                                    Log.e(TAG, "NO SUCH JSON!!");
-                                                                }
-                                                            }
-                                                        },
-                                                        new Response.ErrorListener() {
-                                                            @Override
-                                                            public void onErrorResponse(VolleyError error) {
-                                                                Log.e(TAG, "WIKI request send error.");
-                                                            }
-                                                        }
-
-                                                ) {
-                                                    @Override
-                                                    public Map<String, String> getHeaders() throws AuthFailureError {
-                                                        Map<String, String> params = new HashMap<>();
-                                                        params.put("apikey", api);
-                                                        return params;
-                                                    }
-                                                };
-                                                requestQueue.add(imageRequest);
-                                                requestQueue.add(detailsRequest);
-                                                requestQueue.add(wikiRequest);
-                                            } catch (JSONException e) {
-                                                Log.e(TAG, "Error on APICallQueryIDGetRecordID.OnResponse.");
-                                            }
-                                        }
-                                    },
-                                    new Response.ErrorListener() {
-                                        @Override
-                                        public void onErrorResponse(VolleyError error) {
-                                            Log.e(TAG, error.toString());
-                                            //implement
-                                        }
-                                    }
-                            ) {
-                                @Override
-                                public Map<String, String> getHeaders() throws AuthFailureError {
-                                    Map<String, String> params = new HashMap<>();
-                                    params.put("apikey", api);
-                                    return params;
-                                }
-                            };
-
-                            requestQueue.add(recordIDRequest);
-
-                        } catch (JSONException ignored) {
-                            Log.e(TAG, "you screwed up the onResponse:\n" + ignored.toString());
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e(TAG, error.toString());
-                    }
-                }
-        ) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> params = new HashMap<>();
-                params.put("apikey", api);
-                return params;
-            }
-        };
         if (checked) {
-            requestQueue.add(formulaRequest);
+            initiateByFormula(chemical);
         } else {
-            requestQueue.add(request);
+            initiateByName(chemical);
         }
+
     }
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -473,49 +97,90 @@ public class searchResult extends AppCompatActivity {
 
     }
 
-    /*
-        public void APICallQueryIDGetRecordID(String queryID) {
-            JSONObject jsonReq = new JSONObject();
-            try {
-                jsonReq.put("name", chemical);
-                jsonReq.put("orderDirection", "");
-            } catch (JSONException ignored) {
-                Log.e(TAG, "you screwed up the json package");
-            }
-            JsonObjectRequest request = new JsonObjectRequest(
-                    Request.Method.POST,
-                    "https://api.rsc.org/compounds/v1/filter/name",
-                    jsonReq,
-                    new Response.Listener<JSONObject>() {
-                        public void onResponse(final JSONObject response) {
-                            try {
+    public void initiateByName(String chemical) {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("name", chemical);
+            json.put("orderDirection", "");
+        } catch (JSONException ignored) {
+            Log.e(TAG, "you screwed up the json package");
+        }
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST,
+                "https://api.rsc.org/compounds/v1/filter/name",
+                json,
+                new Response.Listener<JSONObject>() {
+                    public void onResponse(final JSONObject response) {
+                        try {
+                            queryID = response.getString("queryId");
+                            Log.i(TAG, queryID);
+                            Log.i(TAG, "success on query");
+                            callQueryIDGetRecordID();
 
-                                queryID = response.getString("queryId");
-                                Log.i(TAG, queryID);
-                                Log.i(TAG, "success on query");
-                            } catch (JSONException ignored) {
-                                Log.e(TAG, "you screwed up the onResponse:\n" + ignored.toString());
-                            }
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.e(TAG, error.toString());
+                        } catch (JSONException ignored) {
+                            Log.e(TAG, "you screwed up the onResponse:\n" + ignored.toString());
                         }
                     }
-            ) {
-                @Override
-                public Map<String, String> getHeaders() {
-                    Map<String, String> params = new HashMap<>();
-                    params.put("apikey", api);
-                    return params;
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, error.toString());
+                    }
                 }
-            };
-            requestQueue.add(request);
-        }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> params = new HashMap<>();
+                params.put("apikey", api);
+                return params;
+            }
+        };
+        requestQueue.add(request);
+    }
 
-    public void APICallQueryIDGetRecordID(String queryID) {
+    public void initiateByFormula(String chemical) {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("formula", chemical);
+            json.put("orderDirection", "");
+        } catch (JSONException ignored) {
+            Log.e(TAG, "you screwed up the json package");
+        }
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST,
+                "https://api.rsc.org/compounds/v1/filter/formula",
+                json,
+                new Response.Listener<JSONObject>() {
+                    public void onResponse(final JSONObject response) {
+                        try {
+                            queryID = response.getString("queryId");
+                            Log.i(TAG, queryID);
+                            Log.i(TAG, "success on query");
+                            callQueryIDGetRecordID();
+                        } catch (JSONException ignored) {
+                            Log.e(TAG, "you screwed up the onResponse:\n" + ignored.toString());
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, error.toString());
+                    }
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> params = new HashMap<>();
+                params.put("apikey", api);
+                return params;
+            }
+        };
+        requestQueue.add(request);
+    }
+
+    public void callQueryIDGetRecordID() {
         try {
             JsonObjectRequest recordIDRequest = new JsonObjectRequest(
                     "https://api.rsc.org/compounds/v1/filter/"
@@ -525,10 +190,20 @@ public class searchResult extends AppCompatActivity {
                         @Override
                         public void onResponse(JSONObject response) {
                             try {
-                                setRecordID(response.getJSONArray("results").getString(0));
+                                recordID = response.getJSONArray("results").getString(0);
+                                if (recordID.equals("") || recordID == null) {
+                                    name.setText("Error");
+                                    molarMass.setText("Sorry, we can not find this compound.");
+                                }
                                 Log.i(TAG, recordID);
+                                callRecordIDGetDetails();
                             } catch (JSONException e) {
                                 Log.e(TAG, "Error on APICallQueryIDGetRecordID.OnResponse.");
+                                name.setText("Error");
+                                molarMass.setText("Sorry, we can not find this compound.");
+                            } catch (NullPointerException e) {
+                                name.setText("Error");
+                                molarMass.setText("Sorry, we can not find this compound.");
                             }
                         }
                     },
@@ -536,7 +211,8 @@ public class searchResult extends AppCompatActivity {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             Log.e(TAG, error.toString());
-                            //implement
+                            name.setText("Error");
+                            molarMass.setText("Sorry, we can not find this compound.");
                         }
                     }
             ) {
@@ -554,24 +230,119 @@ public class searchResult extends AppCompatActivity {
         }
     }
 
-    public void APICallRecordIDGetDetails(String recordID) {
-        JsonObjectRequest detailsRequest = new JsonObjectRequest(
+    public void callRecordIDGetDetails() {
+        final JsonObjectRequest detailsRequest = new JsonObjectRequest(
                 "https://api.rsc.org/compounds/v1/records/" + recordID + "/details?fields=SMILES,Formula,CommonName,MolecularWeight",
                 null,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-
-
+                            Log.i(TAG, "Details: " + response.getString("commonName"));
+                            name.setText(response.getString("commonName"));
+                            smile.setText("SMILES: " + response.getString("smiles"));
+                            String rawFormula = response.getString("formula");
+                            String regx = "_{}";
+                            char[] ca = regx.toCharArray();
+                            for (char c : ca) {
+                                rawFormula = rawFormula.replace("" + c, "");
+                            }
+                            formula.setText("Formula: " + rawFormula);
+                            molarMass.setText("Molar Mass: " + Double.toString(response.getDouble("molecularWeight")));
+                        } catch (JSONException e) {
+                            Log.e(TAG, "Error on detailsRequest.onResponse.");
                         }
                     }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, "Error on detailsRequest.detailsRequest.");
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> params = new HashMap<>();
+                params.put("apikey", api);
+                return params;
+            }
+        };
+        JsonObjectRequest wikiRequest = new JsonObjectRequest(
+                "https://api.rsc.org/compounds/v1/records/" + recordID + "/externalreferences?dataSources=wikipedia",
+                null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            JSONArray wiki = response.getJSONArray("externalReferences");
+                            JSONObject wikiLink = wiki.getJSONObject(0);
+                            String link = wikiLink.getString("externalUrl");
+
+                            wikipedia.setText(Html.fromHtml("Wikipedia page available:<br><font color=#0066ff>" + link + "</font><br>Click to access the page."));
+
+                            final Uri uriUrl = Uri.parse(link);
+                            wikipedia.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+
+                                    Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
+                                    startActivity(launchBrowser);
+                                }
+                            });
+                        } catch (JSONException ignored) {
+                            Log.e(TAG, "NO SUCH JSON!!");
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, "WIKI request send error.");
+                    }
                 }
-        )
+
+        ) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("apikey", api);
+                return params;
+            }
+        };
+        final JsonObjectRequest imageRequest = new JsonObjectRequest(
+                "https://api.rsc.org/compounds/v1/records/" + recordID + "/image",
+                null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response3) {
+                        try {
+                            Log.i(TAG, "Image (Base64 coded): " + response3.getString("image"));
+                            byte[] decoded = Base64.decode(response3.getString("image"), Base64.DEFAULT);
+                            Bitmap decodedByte = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
+                            imageView.setImageBitmap(decodedByte);
+                        } catch (JSONException e) {
+                            Log.e(TAG, "Error on imageRequest.onResponse.");
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e(TAG, "Error on detailsRequest.");
+                    }
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("apikey", api);
+                return params;
+            }
+        };
+        requestQueue.add(detailsRequest);
+        requestQueue.add(wikiRequest);
+        requestQueue.add(imageRequest);
     }
 
-    void APICallFormula(String chemical) {
-        //implement
-    }
-    */
+
 }
