@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.LightingColorFilter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -16,6 +17,11 @@ import android.widget.TextView;
 import android.support.v7.widget.Toolbar;
 
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +29,12 @@ import java.util.Map;
 public final class MainActivity extends AppCompatActivity {
 
     public boolean checked = false;
+    public TextView shortResult;
+    public EditText textbar;
+    public Button search;
+    public Switch switch1;
+    public Button molarMass;
+    public Button translate;
 
     /**
      * Run when this activity comes to the foreground.
@@ -33,10 +45,10 @@ public final class MainActivity extends AppCompatActivity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final TextView shortResult = (TextView) findViewById(R.id.shortResult);
-        final EditText textbar = (EditText) findViewById(R.id.textbar);
-        Button search = (Button) findViewById(R.id.search);
-        final Switch switch1 = (Switch) findViewById(R.id.switch1);
+        shortResult = (TextView) findViewById(R.id.shortResult);
+        textbar = (EditText) findViewById(R.id.textbar);
+        search = (Button) findViewById(R.id.search);
+        switch1 = (Switch) findViewById(R.id.switch1);
         switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -57,7 +69,7 @@ public final class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button molarMass = (Button) findViewById(R.id.molarMass);
+        molarMass = (Button) findViewById(R.id.molarMass);
         molarMass.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -69,6 +81,37 @@ public final class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        translate = findViewById(R.id.translate);
+        translate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Document doc = Jsoup.connect("https://translate.google.com/#en/zh-CN/methane" + textbar.getText().toString()).get();
+                            final Element content = doc.getElementsByClass("e_md pre-epu").get(0).getElementById("gt-c")
+                                    .getElementById("gt-form-c").getElementById("ge-form").getElementById("gt-text-all")
+                                    .getElementById("gt-main").getElementById("gt-text-c").getElementById("gt-text-top")
+                                    .getElementById("gt-res-c").getElementById("gt-res-p").getElementById("gt-res-data")
+                                    .getElementById("gt-res-wrap").getElementById("gt-res-content")
+                                    .getElementById("gt-res-dir-ctr").getElementById("result_box");
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    shortResult.setText(content.text());
+                                }
+                            });
+
+                        } catch (java.io.IOException ignored){
+                            shortResult.setText("ERROR");
+                        }
+                    }
+                });
+                thread.start();
+            }
+        });
     }
 
 
@@ -78,6 +121,10 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+    }
+
+    public void translate(final String input) {
+
     }
 
     public double getMolarMass(final String chemical) {

@@ -32,10 +32,10 @@ public class about extends AppCompatActivity {
                     startActivity(launchBrowser);
                 }
         });
-        text.setText(Html.fromHtml("Created by Zhenting Zhao and Penghao Wang.<br>The search functionality uses the " +
-                "API from ChemSpider Compound Search API. The molar mass calculator" +
-                "functionality runs locally. <br> This application is still in its early " +
-                "developing phase. <br>" + "<font color=#e0e000>TODO</font>: implement menu.settings<br>"));
+        text.setText(Html.fromHtml("Created by Zhenting Zhao.<br>The search functionality uses the " +
+                "ChemSpider Compound Search API. The molar mass calculator " +
+                "feature runs locally. <br> This application is still in its early " +
+                "development phase. <br>" + "<font color=#e0e000>TODO</font>: implement menu.settings<br>"));
         youTube.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
